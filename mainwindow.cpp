@@ -10,11 +10,13 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
 	ui(new Ui::MainWindow)
 {
-    ui->setupUi(this);
+	Q_INIT_RESOURCE(qrl);
+	ui->setupUi(this);
 	this->launcher = new Launcher();
 	this->launcher->setMainWindow(this);
 	this->launcher->start();
 	this->dialogSelectInstallLocation = new DialogSelectInstallLocation();
+	this->setWindowIcon(QIcon(":/images/icon.png"));
 }
 
 void MainWindow::setStatus(const QString &str) {

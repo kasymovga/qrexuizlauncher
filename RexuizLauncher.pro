@@ -39,3 +39,6 @@ HEADERS += \
 FORMS += \
         mainwindow.ui \
     dialogselectinstalllocation.ui
+
+RESOURCES += \
+    qrl.qrc
