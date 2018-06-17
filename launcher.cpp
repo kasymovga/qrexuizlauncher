@@ -124,7 +124,7 @@ void Launcher::launch() {
 	this->setProgress(1);
 	this->setSubProgress(1);
 	QMetaObject::invokeMethod(mainWindow, "setSubStatus", Q_ARG(QString, ""));
-	QMetaObject::invokeMethod(mainWindow, "setStatus", Q_ARG(QString, "Running"));
+	QMetaObject::invokeMethod(mainWindow, "setStatus", Q_ARG(QString, tr("Running")));
 	QString binaryPath = this->buildPath(Rexuiz::binary());
 	QFile::setPermissions(binaryPath,
 			QFile::ExeUser | QFile::ExeGroup | QFile::ExeOther | QFile::ExeOwner |

@@ -94,6 +94,10 @@ Line: </source>
         <source>Downloading</source>
         <translation>Загрузка</translation>
     </message>
+    <message>
+        <source>Running</source>
+        <translation>Запуск</translation>
+    </message>
 </context>
 <context>
     <name>MainWindow</name>
