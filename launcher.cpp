@@ -181,10 +181,10 @@ void Launcher::run() {
 		this->installPath = QDir(this->installPath).filePath("Rexuiz");
 	}
 	bool isUpdate = false;
-	QMetaObject::invokeMethod(mainWindow, "setStatus", Q_ARG(QString, "Preparing"));
+	QMetaObject::invokeMethod(mainWindow, "setStatus", Q_ARG(QString, tr("Preparing")));
 	QMetaObject::invokeMethod(mainWindow, "setSubStatus", Q_ARG(QString, ""));
 	QSettings settings("RexuizDev", "RexuizLauncher");
-	QMessageBox::StandardButton reply;
+	bool reply;
 	settings.beginGroup("main");
 	if (!updaterMode)
 		this->installPath = settings.value("install_path", this->installPath).toString();
@@ -194,7 +194,7 @@ void Launcher::run() {
 		QMetaObject::invokeMethod(mainWindow, "askDirectory",
 				Qt::BlockingQueuedConnection,
 				Q_RETURN_ARG(QString, this->installPath),
-				Q_ARG(QString, "Select install folder"),
+				Q_ARG(QString, tr("Select install folder")),
 				Q_ARG(QString, this->installPath));
 	}
 	if (this->installPath.isEmpty()) {
@@ -210,16 +210,11 @@ void Launcher::run() {
 	this->index = this->loadIndex(QDir(installPath).filePath("index.lst"));
 	if (index != nullptr) {
 		isUpdate = true;
-	} else {
-		if (reply == QMessageBox::No) {
-			QMetaObject::invokeMethod(this->mainWindow, "close", Qt::BlockingQueuedConnection);
-			return;
-		}
 	}
 	LauncherIndexHash brokenFiles;
 	this->checkFiles(&brokenFiles);
 	QString newIndexPath = QDir(installPath).filePath("index.lst.new");
-	QMetaObject::invokeMethod(mainWindow, "setStatus", Qt::BlockingQueuedConnection, Q_ARG(QString, "Get update information"));
+	QMetaObject::invokeMethod(mainWindow, "setStatus", Qt::BlockingQueuedConnection, Q_ARG(QString, tr("Get update information")));
 	QStringList repos = Rexuiz::repos();
 	foreach (QString repo, repos) {
 		if (download(repo + "/index.lst", newIndexPath)) {
@@ -229,7 +224,7 @@ void Launcher::run() {
 	}
 	if (selectedRepo.isEmpty()) {
 		if (!isUpdate) {
-			QMetaObject::invokeMethod(this->mainWindow, "errorMessage", Qt::BlockingQueuedConnection, Q_ARG(QString ,"Error"), Q_ARG(QString, "Repositories unavailable"));
+			QMetaObject::invokeMethod(this->mainWindow, "errorMessage", Qt::BlockingQueuedConnection, Q_ARG(QString ,"Error"), Q_ARG(QString, tr("Repositories unavailable")));
 			QMetaObject::invokeMethod(this->mainWindow, "close", Qt::BlockingQueuedConnection);
 			return;
 		}
@@ -261,15 +256,15 @@ void Launcher::run() {
 				}
 				QLocale locale;
 				QMetaObject::invokeMethod(this->mainWindow, "askYesNo", Qt::BlockingQueuedConnection,
-						Q_RETURN_ARG(QMessageBox::StandardButton, reply),
-						Q_ARG(QString, "Confirmation"),
-						Q_ARG(QString, "Update size is " + locale.formattedDataSize(expectedDataSize) + ". Install it?"));
+						Q_RETURN_ARG(bool, reply),
+						Q_ARG(QString, tr("Confirmation")),
+						Q_ARG(QString, tr("Update size is ") + locale.formattedDataSize(expectedDataSize) + tr(". Install it?")));
 
-				if (reply == QMessageBox::Yes) {
+				if (reply) {
 					this->resetProgress(expectedDataSize);
 					QVector<QString> tempFiles;
 					for (auto i = newFiles.begin(); i != newFiles.end(); i++) {
-						QMetaObject::invokeMethod(mainWindow, "setStatus", Qt::BlockingQueuedConnection, Q_ARG(QString, "Updating"));
+						QMetaObject::invokeMethod(mainWindow, "setStatus", Qt::BlockingQueuedConnection, Q_ARG(QString, tr("Updating")));
 						if (!downloadLauncherIndexItem(i.value(), &tempFiles)) {
 							if (this->isInterruptionRequested()) {
 								Launcher::deleteIndex(newIndex);
@@ -278,8 +273,8 @@ void Launcher::run() {
 
 							QMetaObject::invokeMethod(this->mainWindow, "errorMessage",
 									Qt::BlockingQueuedConnection,
-									Q_ARG(QString ,"Error"),
-									Q_ARG(QString, QString("File download failed: " + i.value()->path)));
+									Q_ARG(QString ,tr("Error")),
+									Q_ARG(QString, QString(tr("File download failed: ") + i.value()->path)));
 
 							QMetaObject::invokeMethod(this->mainWindow, "close", Qt::BlockingQueuedConnection);
 							return;
@@ -351,8 +346,8 @@ LauncherIndexHash *Launcher::loadIndex(const QString &path) {
 		if (readed < 0) {
 			QMetaObject::invokeMethod(this->mainWindow, "errorMessage",
 					Qt::BlockingQueuedConnection,
-					Q_ARG(QString ,"Error"),
-					Q_ARG(QString, QString("Failed load index: ") + path + "\nRead error: " + file.errorString()));
+					Q_ARG(QString , tr("Error")),
+					Q_ARG(QString, QString(tr("Failed load index: ")) + path + tr("\nRead error: ") + file.errorString()));
 
 			Launcher::deleteIndex(index);
 			return nullptr;
@@ -368,8 +363,8 @@ LauncherIndexHash *Launcher::loadIndex(const QString &path) {
 			if (item == nullptr) {
 				QMetaObject::invokeMethod(this->mainWindow, "errorMessage",
 						Qt::BlockingQueuedConnection,
-						Q_ARG(QString ,"Error"),
-						Q_ARG(QString, QString("Failed parse index: ") + path + "\nLine: " + line));
+						Q_ARG(QString, tr("Error")),
+						Q_ARG(QString, QString(tr("Failed parse index: ")) + path + tr("\nLine: ") + line));
 
 				Launcher::deleteIndex(index);
 				return nullptr;

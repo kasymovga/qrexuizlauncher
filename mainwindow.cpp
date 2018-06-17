@@ -41,8 +41,11 @@ void MainWindow::setSubProgress(qint64 done, qint64 total) {
 
 }
 
-QMessageBox::StandardButton MainWindow::askYesNo(const QString &title, const QString &question) {
-	return QMessageBox::question(this, title, question, QMessageBox::Yes|QMessageBox::No);
+bool MainWindow::askYesNo(const QString &title, const QString &question) {
+	QMessageBox messageBox(QMessageBox::Question, title, question, QMessageBox::Yes|QMessageBox::No, this);
+	messageBox.setButtonText(QMessageBox::Yes, tr("Yes"));
+	messageBox.setButtonText(QMessageBox::No, tr("No"));
+	return QMessageBox::Yes == messageBox.exec();
 }
 
 QString MainWindow::askDirectory(const QString &title, const QString &defPath) {

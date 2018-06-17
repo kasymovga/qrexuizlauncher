@@ -30,7 +30,7 @@ public slots:
 	void setSubStatus(const QString &str);
 	QString askDirectory(const QString &title, const QString &defPath);
 	void errorMessage(const QString &title, const QString &message);
-	QMessageBox::StandardButton askYesNo(const QString &title, const QString &question);
+	bool askYesNo(const QString &title, const QString &question);
 };
 
 #endif // MAINWINDOW_H

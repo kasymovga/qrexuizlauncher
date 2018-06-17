@@ -3,4 +3,7 @@
         <file>icon.png</file>
         <file>logo.png</file>
     </qresource>
+    <qresource prefix="/translations">
+        <file>RexuizLauncher_ru.qm</file>
+    </qresource>
 </RCC>

@@ -42,3 +42,5 @@ FORMS += \
 
 RESOURCES += \
     qrl.qrc
+
+TRANSLATIONS = RexuizLauncher_ru.ts

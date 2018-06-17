@@ -6,21 +6,30 @@
 DialogSelectInstallLocation::DialogSelectInstallLocation(QWidget *parent) :
     QDialog(parent)
 {
-        this->ui = new Ui::DialogSelectInstallLocation();
-        this->ui->setupUi(this);
-        QObject::connect(this->ui->pushButton, SIGNAL(clicked()), this, SLOT(selectDirectory()));
+	this->ui = new Ui::DialogSelectInstallLocation();
+	this->ui->setupUi(this);
+	this->ui->buttonBox->button(QDialogButtonBox::Cancel)->setText(tr("Cancel"));
+	QObject::connect(this->ui->pushButton, SIGNAL(clicked()), this, SLOT(selectDirectory()));
 
 }
 
 void DialogSelectInstallLocation::selectDirectory() {
-	QString dir = QFileDialog::getExistingDirectory(this, QString("Select directory"), this->ui->lineEdit->text(), QFileDialog::ShowDirsOnly);
-	if (dir.isEmpty())
-		return;
+	QFileDialog fileDialog(this, tr("Select directory"));
+	fileDialog.setFileMode(QFileDialog::DirectoryOnly);
+	fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
+	fileDialog.setLabelText(QFileDialog::Reject, tr("Cancel"));
+	fileDialog.setLabelText(QFileDialog::Accept, tr("Select"));
+	//QString dir = QFileDialog::getExistingDirectory(this, QString("Select directory"), this->ui->lineEdit->text(), QFileDialog::ShowDirsOnly);
+	if (fileDialog.exec() == QDialog::Accepted) {
+		QString dir = fileDialog.directory().absoluteFilePath(fileDialog.selectedFiles()[0]);
+		if (dir.isEmpty())
+			return;
 
-	if (!Rexuiz::presentInDirectory(dir))
-		dir = QDir(dir).filePath("Rexuiz");
+		if (!Rexuiz::presentInDirectory(dir))
+			dir = QDir(dir).filePath("Rexuiz");
 
-	this->ui->lineEdit->setText(dir);
+		this->ui->lineEdit->setText(dir);
+	}
 }
 
 DialogSelectInstallLocation::~DialogSelectInstallLocation() {
