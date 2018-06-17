@@ -33,7 +33,7 @@
       <item>
        <widget class="QLabel" name="labelSubStatus">
         <property name="text">
-         <string>SubStatus</string>
+         <string/>
         </property>
         <property name="alignment">
          <set>Qt::AlignBottom|Qt::AlignHCenter</set>
@@ -52,7 +52,7 @@
     <item row="1" column="0">
      <widget class="QLabel" name="labelStatus">
       <property name="text">
-       <string>Status</string>
+       <string/>
       </property>
       <property name="alignment">
        <set>Qt::AlignBottom|Qt::AlignHCenter</set>
