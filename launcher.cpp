@@ -9,7 +9,9 @@
 #include <QSysInfo>
 #include <QCryptographicHash>
 #include <QProcess>
-//#include <JlCompress.h>
+#ifdef USE_QUAZIP
+#include <JlCompress.h>
+#endif
 #include "mainwindow.h"
 
 Launcher::Launcher()
@@ -72,10 +74,10 @@ bool Launcher::downloadLauncherIndexItem(LauncherIndexItem *item) {
 	QString url = *this->selectedRepo + "/" + item->path;
 	QString path = this->buildPath(item->path);
 	if (QFile::exists(path) && QFile(path).size() == item->size && this->MD5Verify(path, item)) {
-		this->setSubProgress(item->size);
+		this->setProgress(item->size);
 		return true;
 	}
-#if 0
+#ifdef USE_QUAZIP
 	if (!item->zipHash.isEmpty() &&
 			!item->zipSourceUrl.isEmpty() &&
 			!item->zipSubPath.isEmpty() && !item->zipTempName.isEmpty()) {
@@ -93,6 +95,7 @@ bool Launcher::downloadLauncherIndexItem(LauncherIndexItem *item) {
 					Qt::BlockingQueuedConnection,
 					Q_ARG(QString, "Unpacking"));
 
+			this->resetSubProgress(0);
 			JlCompress::extractFile(zipTempName, item->zipSubPath, path);
 			if (this->MD5Verify(path, item)) {
 				this->setProgress(item->size);
@@ -159,6 +162,7 @@ QString Launcher::buildPath(const QString &path) {
 bool Launcher::MD5Verify(const QString &path, LauncherIndexItem *item) {
 	QFile f{path};
 	QMetaObject::invokeMethod(mainWindow, "setSubStatus", Qt::BlockingQueuedConnection, Q_ARG(QString, "Verifying"));
+	this->resetSubProgress(0);
 	if (f.open(QFile::ReadOnly)) {
 		QCryptographicHash hash{QCryptographicHash::Md5};
 		if (hash.addData(&f)) {
