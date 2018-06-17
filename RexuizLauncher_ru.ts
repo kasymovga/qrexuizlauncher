@@ -90,6 +90,10 @@ Line: </source>
         <source>Select install folder</source>
         <translation>Выберите установочный каталог</translation>
     </message>
+    <message>
+        <source>Downloading</source>
+        <translation>Загрузка</translation>
+    </message>
 </context>
 <context>
     <name>MainWindow</name>

@@ -59,7 +59,7 @@ bool Launcher::download(const QString &url, const QString &dest, qint64 expected
 	connect(reply, SIGNAL(readyRead()), &dh, SLOT(readyRead()));
 	QMetaObject::invokeMethod(this->mainWindow, "setSubStatus",
 			Qt::BlockingQueuedConnection,
-			Q_ARG(QString, "Downloading"));
+			Q_ARG(QString, tr("Downloading")));
 	dh.loop.exec();
 	bool success = (reply->error() == QNetworkReply::NoError);
 	delete reply;
