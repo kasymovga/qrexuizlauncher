@@ -14,6 +14,9 @@ DialogSelectInstallLocation::DialogSelectInstallLocation(QWidget *parent) :
 
 void DialogSelectInstallLocation::selectDirectory() {
 	QString dir = QFileDialog::getExistingDirectory(this, QString("Select directory"), this->ui->lineEdit->text(), QFileDialog::ShowDirsOnly);
+	if (dir.isEmpty())
+		return;
+
 	if (!Rexuiz::presentInDirectory(dir))
 		dir = QDir(dir).filePath("Rexuiz");
 
