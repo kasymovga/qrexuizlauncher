@@ -8,19 +8,17 @@
 #include <QNetworkReply>
 #include <QSysInfo>
 #include <QCryptographicHash>
+#include <QCoreApplication>
 #include <QProcess>
 #ifdef USE_QUAZIP
 #include <JlCompress.h>
 #endif
 #include "mainwindow.h"
+#include "rexuiz.h"
 
 Launcher::Launcher()
 {
-	this->repos.append(new QString("http://rexuiz.top/maps/RexuizLauncher"));
-	this->repos.append(new QString("http://bnse.rexuiz.top/RexuizLauncher"));
-	this->repos.append(new QString("http://nexuiz.mooo.com/RexuizLauncher"));
-	this->repos.append(new QString("http://108.61.164.188/RexuizLauncher"));
-	this->repos.append(new QString("http://104.238.159.167/RexuizLauncher"));
+
 }
 
 void Launcher::setMainWindow(MainWindow *w) {
@@ -71,7 +69,7 @@ bool Launcher::download(const QString &url, const QString &dest, qint64 expected
 }
 
 bool Launcher::downloadLauncherIndexItem(LauncherIndexItem *item) {
-	QString url = *this->selectedRepo + "/" + item->path;
+	QString url = this->selectedRepo + "/" + item->path;
 	QString path = this->buildPath(item->path);
 	if (QFile::exists(path) && QFile(path).size() == item->size && this->MD5Verify(path, item)) {
 		this->setProgress(item->size);
@@ -120,33 +118,21 @@ bool Launcher::downloadLauncherIndexItem(LauncherIndexItem *item) {
 }
 
 void Launcher::launch() {
+	this->resetProgress(1);
+	this->resetSubProgress(1);
+	this->setProgress(1);
+	this->setSubProgress(1);
 	QMetaObject::invokeMethod(mainWindow, "setSubStatus", Q_ARG(QString, ""));
 	QMetaObject::invokeMethod(mainWindow, "setStatus", Q_ARG(QString, "Running"));
-	bool is64bit = false;
-	if (QSysInfo::currentCpuArchitecture().compare("x86_64") == 0)
-		is64bit = true;
-
-	QString binaryName;
-#ifdef Q_OS_LINUX
-	binaryName = this->buildPath(is64bit ? "rexuiz-linux-sdl-x86_64" : "rexuiz-linux-sdl-i686");
-#else
-#ifdef Q_OS_WIN32
-	binaryName = this->buildPath(is64bit ? "rexuiz-x86_64.exe" : "rexuiz-i686.exe");
-	//run win binary
-#else
-#ifdef Q_OS_MACOS
-	binaryName = this->buildPath("Rexuiz.app/Contents/MacOS/rexuiz-dprm-sdl");
-#endif
-#endif
-#endif
-	QFile::setPermissions(binaryName,
+	QString binaryPath = this->buildPath(Rexuiz::binary());
+	QFile::setPermissions(binaryPath,
 			QFile::ExeUser | QFile::ExeGroup | QFile::ExeOther | QFile::ExeOwner |
 			QFile::ReadUser | QFile::ReadGroup | QFile::ReadOther | QFile::ReadOwner |
 			QFile::WriteOwner
 			);
 
 	QProcess process;
-	process.start(binaryName);
+	process.start(binaryPath);
 	process.waitForFinished(-1);
 }
 
@@ -173,6 +159,9 @@ bool Launcher::MD5Verify(const QString &path, LauncherIndexItem *item) {
 }
 
 void Launcher::checkFiles(LauncherIndexHash *brokenFiles) {
+	if (!this->index)
+		return;
+
 	for (auto i = this->index->begin(); i != this->index->end(); i++) {
 		LauncherIndexItem *item = i.value();
 		if (QFile(this->buildPath(item->path)).size() != item->size) {
@@ -183,15 +172,24 @@ void Launcher::checkFiles(LauncherIndexHash *brokenFiles) {
 }
 
 void Launcher::run() {
+	this->installPath = QDir(QCoreApplication::applicationDirPath()).absolutePath();
+	bool updaterMode = false;
+	if (Rexuiz::presentInDirectory(this->installPath)) {
+		updaterMode = true;
+	} else {
+		this->installPath = QDir(this->installPath).filePath("Rexuiz");
+	}
 	bool isUpdate = false;
 	QMetaObject::invokeMethod(mainWindow, "setStatus", Q_ARG(QString, "Preparing"));
 	QMetaObject::invokeMethod(mainWindow, "setSubStatus", Q_ARG(QString, ""));
 	QSettings settings("RexuizDev", "RexuizLauncher");
 	QMessageBox::StandardButton reply;
 	settings.beginGroup("main");
-	this->installPath = settings.value("install_path", QString("")).toString();
+	if (!updaterMode)
+		this->installPath = settings.value("install_path", this->installPath).toString();
+
 	settings.endGroup();
-	if (this->installPath.isEmpty() || !QFile::exists(QDir(installPath).filePath("index.lst"))) {
+	if (this->installPath.isEmpty() || (!QFile::exists(QDir(installPath).filePath("index.lst")) && !updaterMode)) {
 		QMetaObject::invokeMethod(mainWindow, "askDirectory",
 				Qt::BlockingQueuedConnection,
 				Q_RETURN_ARG(QString, this->installPath),
@@ -203,35 +201,32 @@ void Launcher::run() {
 		return;
 	} else {
 		settings.beginGroup("main");
-		settings.setValue("install_path", this->installPath);
+		if (!updaterMode)
+			settings.setValue("install_path", this->installPath);
+
 		settings.endGroup();
 	}
 	this->index = this->loadIndex(QDir(installPath).filePath("index.lst"));
 	if (index != nullptr) {
 		isUpdate = true;
 	} else {
-		QMetaObject::invokeMethod(this->mainWindow, "askYesNo", Qt::BlockingQueuedConnection,
-				Q_RETURN_ARG(QMessageBox::StandardButton, reply),
-				Q_ARG(QString, "Confirmation"),
-				Q_ARG(QString, "Install rexuiz?"));
-
 		if (reply == QMessageBox::No) {
 			QMetaObject::invokeMethod(this->mainWindow, "close", Qt::BlockingQueuedConnection);
 			return;
 		}
 	}
-	selectedRepo = nullptr;
 	LauncherIndexHash brokenFiles;
 	this->checkFiles(&brokenFiles);
 	QString newIndexPath = QDir(installPath).filePath("index.lst.new");
 	QMetaObject::invokeMethod(mainWindow, "setStatus", Qt::BlockingQueuedConnection, Q_ARG(QString, "Get update information"));
-	foreach (QString *repo, repos) {
-		if (download(*repo + "/index.lst", newIndexPath)) {
+	QStringList repos = Rexuiz::repos();
+	foreach (QString repo, repos) {
+		if (download(repo + "/index.lst", newIndexPath)) {
 			selectedRepo = repo;
 			break;
 		}
 	}
-	if (selectedRepo == nullptr) {
+	if (selectedRepo.isEmpty()) {
 		if (!isUpdate) {
 			QMetaObject::invokeMethod(this->mainWindow, "errorMessage", Qt::BlockingQueuedConnection, Q_ARG(QString ,"Error"), Q_ARG(QString, "Repositories unavailable"));
 			QMetaObject::invokeMethod(this->mainWindow, "close", Qt::BlockingQueuedConnection);

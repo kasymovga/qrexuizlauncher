@@ -27,12 +27,14 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     launcher.cpp \
-    dialogselectinstalllocation.cpp
+    dialogselectinstalllocation.cpp \
+    rexuiz.cpp
 
 HEADERS += \
         mainwindow.h \
     launcher.h \
-    dialogselectinstalllocation.h
+    dialogselectinstalllocation.h \
+    rexuiz.h
 
 FORMS += \
         mainwindow.ui \

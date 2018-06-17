@@ -45,6 +45,7 @@ QMessageBox::StandardButton MainWindow::askYesNo(const QString &title, const QSt
 QString MainWindow::askDirectory(const QString &title, const QString &defPath) {
 	this->dialogSelectInstallLocation->setWindowTitle(title);
 	this->dialogSelectInstallLocation->ui->lineEdit->setText(defPath);
+	qDebug(("Set default path to" + defPath).toLocal8Bit());
 	int code = dialogSelectInstallLocation->exec();
 	if (code == QDialog::Accepted)
 		return dialogSelectInstallLocation->ui->lineEdit->text();

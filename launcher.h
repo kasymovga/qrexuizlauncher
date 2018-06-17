@@ -32,7 +32,7 @@ class Launcher : public QThread
 	QString installPath;
 	MainWindow *mainWindow = nullptr;
 	QVector<QString *> repos;
-	QString *selectedRepo = nullptr;
+	QString selectedRepo;
 	LauncherIndexHash *index = nullptr;
 	static LauncherIndexItem *parseIndexLine(const char *line);
 	bool download(const QString &url, const QString &dest, qint64 expectedSize = 0);

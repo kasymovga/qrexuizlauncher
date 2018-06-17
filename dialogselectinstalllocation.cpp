@@ -1,6 +1,7 @@
 #include <QFileDialog>
 #include "dialogselectinstalllocation.h"
 #include "ui_dialogselectinstalllocation.h"
+#include "rexuiz.h"
 
 DialogSelectInstallLocation::DialogSelectInstallLocation(QWidget *parent) :
     QDialog(parent)
@@ -12,8 +13,11 @@ DialogSelectInstallLocation::DialogSelectInstallLocation(QWidget *parent) :
 }
 
 void DialogSelectInstallLocation::selectDirectory() {
-    this->ui->lineEdit->setText(QDir(
-            QFileDialog::getExistingDirectory(this, QString("Select directory"), QString(""), QFileDialog::ShowDirsOnly)).filePath("Rexuiz"));
+	QString dir = QFileDialog::getExistingDirectory(this, QString("Select directory"), this->ui->lineEdit->text(), QFileDialog::ShowDirsOnly);
+	if (!Rexuiz::presentInDirectory(dir))
+		dir = QDir(dir).filePath("Rexuiz");
+
+	this->ui->lineEdit->setText(dir);
 }
 
 DialogSelectInstallLocation::~DialogSelectInstallLocation() {
