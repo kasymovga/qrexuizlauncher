@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget *parent) :
 	this->launcher->start();
 	this->dialogSelectInstallLocation = new DialogSelectInstallLocation();
 	this->setWindowIcon(QIcon(":/images/icon.png"));
+	this->dialogSelectInstallLocation->setWindowIcon(QIcon(":/images/icon.png"));
 }
 
 void MainWindow::setStatus(const QString &str) {
