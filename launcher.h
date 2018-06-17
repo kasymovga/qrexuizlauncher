@@ -36,7 +36,7 @@ class Launcher : public QThread
 	LauncherIndexHash *index = nullptr;
 	static LauncherIndexItem *parseIndexLine(const char *line);
 	bool download(const QString &url, const QString &dest, qint64 expectedSize = 0);
-	bool downloadLauncherIndexItem(LauncherIndexItem *item);
+	bool downloadLauncherIndexItem(LauncherIndexItem *item, QVector<QString> *tempFiles);
 	LauncherIndexHash *loadIndex(const QString &path);
 	static void deleteIndex(LauncherIndexHash *index);
 	void saveIndex(LauncherIndexHash *index);

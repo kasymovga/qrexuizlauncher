@@ -68,7 +68,7 @@ bool Launcher::download(const QString &url, const QString &dest, qint64 expected
 	return success;
 }
 
-bool Launcher::downloadLauncherIndexItem(LauncherIndexItem *item) {
+bool Launcher::downloadLauncherIndexItem(LauncherIndexItem *item, QVector<QString> *tempFiles) {
 	QString url = this->selectedRepo + "/" + item->path;
 	QString path = this->buildPath(item->path);
 	if (QFile::exists(path) && QFile(path).size() == item->size && this->MD5Verify(path, item)) {
@@ -93,6 +93,7 @@ bool Launcher::downloadLauncherIndexItem(LauncherIndexItem *item) {
 					Qt::BlockingQueuedConnection,
 					Q_ARG(QString, "Unpacking"));
 
+			tempFiles->append(zipTempName);
 			this->resetSubProgress(0);
 			JlCompress::extractFile(zipTempName, item->zipSubPath, path);
 			if (this->MD5Verify(path, item)) {
@@ -266,9 +267,10 @@ void Launcher::run() {
 
 				if (reply == QMessageBox::Yes) {
 					this->resetProgress(expectedDataSize);
+					QVector<QString> tempFiles;
 					for (auto i = newFiles.begin(); i != newFiles.end(); i++) {
 						QMetaObject::invokeMethod(mainWindow, "setStatus", Qt::BlockingQueuedConnection, Q_ARG(QString, "Updating"));
-						if (!downloadLauncherIndexItem(i.value())) {
+						if (!downloadLauncherIndexItem(i.value(), &tempFiles)) {
 							if (this->isInterruptionRequested()) {
 								Launcher::deleteIndex(newIndex);
 								return;
@@ -282,6 +284,9 @@ void Launcher::run() {
 							QMetaObject::invokeMethod(this->mainWindow, "close", Qt::BlockingQueuedConnection);
 							return;
 						}
+					}
+					for (auto i = tempFiles.begin(); i != tempFiles.end(); i++) {
+						QFile::remove(*i);
 					}
 					for (auto i = oldFiles.begin(); i != oldFiles.end(); i++) {
 						//QFile::remove(this->buildPath(i.value()->path));
