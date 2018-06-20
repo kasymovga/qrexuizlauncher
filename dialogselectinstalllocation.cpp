@@ -1,4 +1,6 @@
 #include <QFileDialog>
+#include <QApplication>
+#include <QDesktopWidget>
 #include "dialogselectinstalllocation.h"
 #include "ui_dialogselectinstalllocation.h"
 #include "rexuiz.h"
@@ -10,6 +12,14 @@ DialogSelectInstallLocation::DialogSelectInstallLocation(QWidget *parent) :
 	this->ui->setupUi(this);
 	this->ui->buttonBox->button(QDialogButtonBox::Cancel)->setText(tr("Cancel"));
 	QObject::connect(this->ui->pushButton, SIGNAL(clicked()), this, SLOT(selectDirectory()));
+	this->setGeometry(
+		QStyle::alignedRect(
+			Qt::LeftToRight,
+			Qt::AlignCenter,
+			this->size(),
+			QApplication::desktop()->availableGeometry()
+		)
+	);
 
 }
 

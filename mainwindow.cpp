@@ -1,7 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "ui_dialogselectinstalllocation.h"
+#include <QApplication>
 #include <QString>
+#include <QDesktopWidget>
 #include "launcher.h"
 #include "dialogselectinstalllocation.h"
 #include "ui_dialogselectinstalllocation.h"
@@ -18,6 +20,14 @@ MainWindow::MainWindow(QWidget *parent) :
 	this->dialogSelectInstallLocation = new DialogSelectInstallLocation();
 	this->setWindowIcon(QIcon(":/images/icon.png"));
 	this->dialogSelectInstallLocation->setWindowIcon(QIcon(":/images/icon.png"));
+	this->setGeometry(
+		QStyle::alignedRect(
+			Qt::LeftToRight,
+			Qt::AlignCenter,
+			this->size(),
+			QApplication::desktop()->availableGeometry()
+		)
+	);
 }
 
 void MainWindow::setStatus(const QString &str) {
