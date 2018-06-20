@@ -10,11 +10,9 @@
 #include <QCryptographicHash>
 #include <QCoreApplication>
 #include <QProcess>
-#ifdef USE_QUAZIP
-#include <JlCompress.h>
-#endif
 #include "mainwindow.h"
 #include "rexuiz.h"
+#include "unzip.h"
 
 Launcher::Launcher()
 {
@@ -75,7 +73,6 @@ bool Launcher::downloadLauncherIndexItem(LauncherIndexItem *item, QVector<QStrin
 		this->setProgress(item->size);
 		return true;
 	}
-#ifdef USE_QUAZIP
 	if (!item->zipHash.isEmpty() &&
 			!item->zipSourceUrl.isEmpty() &&
 			!item->zipSubPath.isEmpty() && !item->zipTempName.isEmpty()) {
@@ -95,14 +92,13 @@ bool Launcher::downloadLauncherIndexItem(LauncherIndexItem *item, QVector<QStrin
 
 			tempFiles->append(zipTempName);
 			this->resetSubProgress(0);
-			JlCompress::extractFile(zipTempName, item->zipSubPath, path);
+			UnZip::extractFile(zipTempName, item->zipSubPath, path);
 			if (this->MD5Verify(path, item)) {
 				this->setProgress(item->size);
 				return true;
 			}
 		}
 	}
-#endif
 	this->resetSubProgress(item->size);
 	if (this->download(url, path, item->size)) {
 		if (this->MD5Verify(path, item)) {
