@@ -129,7 +129,7 @@ void Launcher::launch() {
 			);
 
 	QProcess process;
-	process.start(binaryPath);
+	process.start(binaryPath, QStringList());
 	process.waitForFinished(-1);
 }
 
