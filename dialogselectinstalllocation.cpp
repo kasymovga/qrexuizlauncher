@@ -1,5 +1,6 @@
 #include <QFileDialog>
 #include <QApplication>
+#include <QStyle>
 #include <QDesktopWidget>
 #include "dialogselectinstalllocation.h"
 #include "ui_dialogselectinstalllocation.h"

@@ -3,6 +3,7 @@
 #include "ui_dialogselectinstalllocation.h"
 #include <QApplication>
 #include <QString>
+#include <QStyle>
 #include <QDesktopWidget>
 #include "launcher.h"
 #include "dialogselectinstalllocation.h"
