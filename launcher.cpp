@@ -11,6 +11,7 @@
 #include <QCoreApplication>
 #include <QProcess>
 #include <QProcessEnvironment>
+#include <QLocale>
 #include "mainwindow.h"
 #include "rexuiz.h"
 #include "unzip.h"
