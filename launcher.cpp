@@ -10,6 +10,7 @@
 #include <QCryptographicHash>
 #include <QCoreApplication>
 #include <QProcess>
+#include <QProcessEnvironment>
 #include "mainwindow.h"
 #include "rexuiz.h"
 #include "unzip.h"
@@ -169,6 +170,12 @@ void Launcher::checkFiles(LauncherIndexHash *brokenFiles) {
 }
 
 void Launcher::run() {
+#ifdef Q_OS_LINUX
+	this->installPath = QProcessEnvironment::systemEnvironment().value("APPIMAGE", "");
+	if (!this->installPath.isEmpty())
+		this->installPath = QFileInfo(this->installPath).dir().absolutePath();
+	else
+#endif
 	this->installPath = QDir(QCoreApplication::applicationDirPath()).absolutePath();
 	bool updaterMode = false;
 	if (Rexuiz::presentInDirectory(this->installPath)) {
