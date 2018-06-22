@@ -36,7 +36,7 @@ bool Launcher::download(const QString &url, const QString &dest, qint64 expected
 		return false;
 	}
 	QFile outFile;
-	outFile.setFileName(dest);
+	outFile.setFileName(dest + ".tmp");
 	if (!outFile.open(QIODevice::WriteOnly)) {
 		QMetaObject::invokeMethod(this->mainWindow, "errorMessage",
 				Qt::BlockingQueuedConnection,
@@ -61,9 +61,14 @@ bool Launcher::download(const QString &url, const QString &dest, qint64 expected
 			Q_ARG(QString, tr("Downloading")));
 	dh.loop.exec();
 	bool success = (reply->error() == QNetworkReply::NoError);
+	if (!success)
+		QFile::remove(dest + ".tmp");
+
 	delete reply;
 	outFile.flush();
 	outFile.close();
+	QFile::remove(dest);
+	outFile.rename(dest);
 	return success;
 }
 
