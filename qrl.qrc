@@ -6,4 +6,7 @@
     <qresource prefix="/translations">
         <file>RexuizLauncher_ru.qm</file>
     </qresource>
+    <qresource prefix="/cfg">
+        <file>sources.txt</file>
+    </qresource>
 </RCC>

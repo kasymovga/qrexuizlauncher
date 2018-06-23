@@ -25,11 +25,18 @@ const char *Rexuiz::binary() {
 
 QStringList Rexuiz::repos() {
 	QStringList list;
-	list.append(QString("http://bnse.rexuiz.top/RexuizLauncher"));
-	list.append(QString("http://rexuiz.top/maps/RexuizLauncher"));
-	list.append(QString("http://nexuiz.mooo.com/RexuizLauncher"));
-	list.append(QString("http://108.61.164.188/RexuizLauncher"));
-	list.append(QString("http://104.238.159.167/RexuizLauncher"));
+	QFile sources(":/cfg/sources.txt");
+	QByteArray line;
+	if (sources.open(QFile::ReadOnly)) {
+		while (!sources.atEnd() && sources.error() == QFile::NoError) {
+			line = sources.readLine();
+			if (line[line.length() - 1] == '\n')
+				line = line.left(line.length() - 1);
+
+			list.append(QString(line));
+		}
+		sources.close();
+	}
 	return list;
 }
 
