@@ -200,7 +200,7 @@ void Launcher::selectRepo(const QString &newIndexPath) {
 		QMetaObject::invokeMethod(this->mainWindow, "errorMessage",
 				Qt::BlockingQueuedConnection,
 				Q_ARG(QString ,tr("Error")),
-				Q_ARG(QString, QString(tr("Digital signature failed. Maybe you need update RexuizLauncher"))));
+				Q_ARG(QString, QString(tr("Digital signature check failed. Maybe you need update RexuizLauncher."))));
 }
 
 bool Launcher::update(const QString &newIndexPath, LauncherIndexHash *brokenFiles) {

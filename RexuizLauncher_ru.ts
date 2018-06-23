@@ -98,6 +98,10 @@ Line: </source>
         <source>Running</source>
         <translation>Запуск</translation>
     </message>
+    <message>
+        <source>Digital signature check failed. Maybe you need update RexuizLauncher.</source>
+        <translation>Проверка цифровой подписи завершилась неуспешно. Возможно необходимо обновить RexuizLauncher.</translation>
+    </message>
 </context>
 <context>
     <name>MainWindow</name>
