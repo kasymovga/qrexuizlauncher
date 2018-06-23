@@ -203,9 +203,10 @@ void Launcher::selectRepo(const QString &newIndexPath) {
 				Q_ARG(QString, QString(tr("Digital signature failed. Maybe you need update RexuizLauncher"))));
 }
 
-void Launcher::update(const QString &newIndexPath, LauncherIndexHash *brokenFiles) {
+bool Launcher::update(const QString &newIndexPath, LauncherIndexHash *brokenFiles) {
 	auto newIndex = Launcher::loadIndex(newIndexPath);
 	bool reply = false;
+	bool success = false;
 	if (newIndex && newIndex->begin() != newIndex->end()) {
 		//We have new index, try update
 		LauncherIndexHash newFiles; //new files, that we want update
@@ -243,8 +244,7 @@ void Launcher::update(const QString &newIndexPath, LauncherIndexHash *brokenFile
 					QMetaObject::invokeMethod(mainWindow, "setStatus", Qt::BlockingQueuedConnection, Q_ARG(QString, tr("Updating")));
 					if (!downloadLauncherIndexItem(i.value(), &tempFiles)) {
 						if (this->isInterruptionRequested()) {
-							Launcher::deleteIndex(newIndex);
-							return;
+							goto finish;
 						}
 
 						QMetaObject::invokeMethod(this->mainWindow, "errorMessage",
@@ -253,7 +253,7 @@ void Launcher::update(const QString &newIndexPath, LauncherIndexHash *brokenFile
 								Q_ARG(QString, QString(tr("File download failed: ") + i.value()->path)));
 
 						QMetaObject::invokeMethod(this->mainWindow, "close", Qt::BlockingQueuedConnection);
-						return;
+						goto finish;
 					}
 				}
 				for (auto i = tempFiles.begin(); i != tempFiles.end(); i++) {
@@ -262,12 +262,17 @@ void Launcher::update(const QString &newIndexPath, LauncherIndexHash *brokenFile
 				for (auto i = oldFiles.begin(); i != oldFiles.end(); i++) {
 					//QFile::remove(this->buildPath(i.value()->path));
 				}
+			} else {
+				success = true;
+				goto finish;
 			}
+			Launcher::saveIndex(newIndex);
 		}
-		Launcher::saveIndex(newIndex);
-		Launcher::deleteIndex(newIndex);
-		QFile::remove(newIndexPath);
 	}
+	success = true;
+finish:
+	Launcher::deleteIndex(newIndex);
+	return success;
 }
 
 void Launcher::run() {
@@ -319,16 +324,21 @@ void Launcher::run() {
 	QString newIndexPath = QDir(installPath).filePath("index.lst.new");
 	QMetaObject::invokeMethod(mainWindow, "setStatus", Qt::BlockingQueuedConnection, Q_ARG(QString, tr("Get update information")));
 	this->selectRepo(newIndexPath);
+	bool updateFailed = false;
 	if (selectedRepo.isEmpty()) {
 		if (!isUpdate) {
 			QMetaObject::invokeMethod(this->mainWindow, "errorMessage", Qt::BlockingQueuedConnection, Q_ARG(QString ,"Error"), Q_ARG(QString, tr("Repositories unavailable")));
-			QMetaObject::invokeMethod(this->mainWindow, "close", Qt::BlockingQueuedConnection);
-			return;
+			goto finish;
 		}
 	} else {
-		this->update(newIndexPath, &brokenFiles);
+		if (!this->update(newIndexPath, &brokenFiles))
+			updateFailed = true;
 	}
-	this->launch();
+	if (!updateFailed)
+		this->launch();
+finish:
+	QFile::remove(newIndexPath);
+	QFile::remove(newIndexPath + ".sig");
 	QMetaObject::invokeMethod(this->mainWindow, "close", Qt::BlockingQueuedConnection);
 }
 
