@@ -48,6 +48,8 @@ class Launcher : public QThread
 	void resetProgress(qint64 total);
 	void resetSubProgress(qint64 total);
 	void checkFiles(LauncherIndexHash *brokenFiles);
+	void selectRepo(const QString &newIndexPath);
+	void update(const QString &newIndexPath, LauncherIndexHash *brokenFiles);
 public:
     Launcher();
 	~Launcher();
