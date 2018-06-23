@@ -30,7 +30,8 @@ SOURCES += \
     dialogselectinstalllocation.cpp \
     rexuiz.cpp \
 	miniz.c \
-    unzip.cpp
+    unzip.cpp \
+    sign.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -38,7 +39,8 @@ HEADERS += \
     dialogselectinstalllocation.h \
     rexuiz.h \
 	miniz.h \
-    unzip.h
+    unzip.h \
+    sign.h
 
 FORMS += \
         mainwindow.ui \
@@ -48,3 +50,5 @@ RESOURCES += \
     qrl.qrc
 
 TRANSLATIONS = RexuizLauncher_ru.ts
+
+LIBS += -lmbedcrypto

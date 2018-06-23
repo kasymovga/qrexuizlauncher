@@ -12,6 +12,7 @@
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QLocale>
+#include "sign.h"
 #include "mainwindow.h"
 #include "rexuiz.h"
 #include "unzip.h"
@@ -176,13 +177,30 @@ void Launcher::checkFiles(LauncherIndexHash *brokenFiles) {
 }
 
 void Launcher::selectRepo(const QString &newIndexPath) {
+	bool sigFail = false;
 	QStringList repos = Rexuiz::repos();
 	foreach (QString repo, repos) {
 		if (download(repo + "/index.lst", newIndexPath)) {
-			this->selectedRepo = repo;
-			break;
+			QString sigPath = this->buildPath("index.lst.new.sig");
+			if (this->download(repo + "/index.lst.sig", sigPath)) {
+				if (Sign::verify(newIndexPath, sigPath)) {
+					this->selectedRepo = repo;
+					qDebug("index file verification success");
+					return;
+				} else {
+					sigFail = true;
+					qDebug("index file verification failed");
+				}
+			} else {
+				qDebug("no digital signature for index");
+			}
 		}
 	}
+	if (sigFail)
+		QMetaObject::invokeMethod(this->mainWindow, "errorMessage",
+				Qt::BlockingQueuedConnection,
+				Q_ARG(QString ,tr("Error")),
+				Q_ARG(QString, QString(tr("Digital signature failed. Maybe you need update RexuizLauncher"))));
 }
 
 void Launcher::update(const QString &newIndexPath, LauncherIndexHash *brokenFiles) {
@@ -292,7 +310,7 @@ void Launcher::run() {
 
 		settings.endGroup();
 	}
-	this->index = this->loadIndex(QDir(installPath).filePath("index.lst"));
+	this->index = this->loadIndex(this->buildPath("index.lst"));
 	if (index != nullptr) {
 		isUpdate = true;
 	}

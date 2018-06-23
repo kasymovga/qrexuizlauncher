@@ -8,5 +8,6 @@
     </qresource>
     <qresource prefix="/cfg">
         <file>sources.txt</file>
+        <file>rexuiz_pub.key</file>
     </qresource>
 </RCC>
