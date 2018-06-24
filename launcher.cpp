@@ -137,6 +137,7 @@ void Launcher::launch() {
 			);
 
 	QProcess process;
+	process.setProcessChannelMode(QProcess::ForwardedChannels);
 	process.start(binaryPath, QStringList());
 	process.waitForFinished(-1);
 }
