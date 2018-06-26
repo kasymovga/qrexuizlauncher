@@ -12,6 +12,7 @@
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QLocale>
+#include <QStandardPaths>
 #include "sign.h"
 #include "mainwindow.h"
 #include "rexuiz.h"
@@ -279,11 +280,15 @@ finish:
 void Launcher::run() {
 #ifdef Q_OS_LINUX
 	this->installPath = QProcessEnvironment::systemEnvironment().value("APPIMAGE", "");
-	if (!this->installPath.isEmpty())
+	if (!this->installPath.isEmpty()) {
 		this->installPath = QFileInfo(this->installPath).dir().absolutePath();
-	else
+	} else
 #endif
 	this->installPath = QDir(QCoreApplication::applicationDirPath()).absolutePath();
+#ifdef Q_OS_LINUX
+	if (!QFileInfo(installPath).isWritable())
+		this->installPath = QStandardPaths::locate(QStandardPaths::HomeLocation, QString(), QStandardPaths::LocateDirectory);;
+#endif
 	bool updaterMode = false;
 	if (Rexuiz::presentInDirectory(this->installPath)) {
 		updaterMode = true;
