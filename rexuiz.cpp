@@ -13,7 +13,7 @@ const char *Rexuiz::binary() {
 	return is64bit ? "rexuiz-linux-sdl-x86_64" : "rexuiz-linux-sdl-i686";
 #else
 #ifdef Q_OS_WIN32
-	return is64bit ? "rexuiz-x86_64.exe" : "rexuiz-i686.exe";
+	return is64bit ? "rexuiz-sdl-x86_64.exe" : "rexuiz-sdl-i686.exe";
 #else
 #ifdef Q_OS_MACOS
 	return "Rexuiz.app/Contents/MacOS/rexuiz-dprm-sdl";
