@@ -35,7 +35,7 @@ class Launcher : public QThread
 	QString selectedRepo;
 	LauncherIndexHash *index = nullptr;
 	static LauncherIndexItem *parseIndexLine(const char *line);
-	bool download(const QString &url, const QString &dest, qint64 expectedSize = 0);
+	bool download(const QString &url, const QString &dest, qint64 expectedSize = 0, int timeout = 0);
 	bool downloadLauncherIndexItem(LauncherIndexItem *item, QVector<QString> *tempFiles);
 	LauncherIndexHash *loadIndex(const QString &path);
 	static void deleteIndex(LauncherIndexHash *index);
@@ -63,19 +63,24 @@ public slots:
 class LauncherDownloadHandler : public QObject {
 	Q_OBJECT
 public:
-	QEventLoop loop;
 	QFile *outFile;
 	QNetworkReply *reply;
 	Launcher *launcher;
+	bool failed = false;
 public slots:
 	void finished(QNetworkReply *_reply) {
 		launcher->setSubProgress(outFile->write(_reply->readAll()));
-		QMetaObject::invokeMethod(&loop, "quit");
+		QMetaObject::invokeMethod(launcher, "quit");
+	}
+	void timeout() {
+		failed = true;
+		QMetaObject::invokeMethod(reply, "abort");
 	}
 	void readyRead() {
-		if (launcher->isInterruptionRequested())
-			reply->abort();
-		else {
+		if (launcher->isInterruptionRequested()) {
+			QMetaObject::invokeMethod(reply, "abort");
+			failed = true;
+		} else {
 			launcher->setSubProgress(outFile->write(reply->readAll()));
 		}
 	}

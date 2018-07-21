@@ -12,6 +12,7 @@
 #include <QProcess>
 #include <QProcessEnvironment>
 #include <QLocale>
+#include <QTimer>
 #include <QStandardPaths>
 #include "sign.h"
 #include "mainwindow.h"
@@ -20,14 +21,13 @@
 
 Launcher::Launcher()
 {
-
 }
 
 void Launcher::setMainWindow(MainWindow *w) {
 	this->mainWindow = w;
 }
 
-bool Launcher::download(const QString &url, const QString &dest, qint64 expectedSize) {
+bool Launcher::download(const QString &url, const QString &dest, qint64 expectedSize, int timeout) {
 	this->resetSubProgress(expectedSize);
 	qDebug((QString("Downloading ") + url + " to " + dest).toLocal8Bit());
 	if (!QFileInfo(dest).dir().mkpath(".")) {
@@ -55,24 +55,30 @@ bool Launcher::download(const QString &url, const QString &dest, qint64 expected
 	LauncherDownloadHandler dh;
 	dh.outFile = &outFile;
 	dh.launcher = this;
+	QTimer timer;
 	connect(&nam, SIGNAL(finished(QNetworkReply*)), &dh, SLOT(finished(QNetworkReply*)));
 	QNetworkReply *reply = nam.get(req);
 	dh.reply = reply;
+	if (timeout > 0) {
+		timer.setSingleShot(true);
+		if (!connect(&timer, SIGNAL(timeout()), &dh, SLOT(timeout()))) {
+			qDebug("timer connection failed\n");
+		}
+		timer.start(timeout);
+	}
 	connect(reply, SIGNAL(readyRead()), &dh, SLOT(readyRead()));
 	QMetaObject::invokeMethod(this->mainWindow, "setSubStatus",
 			Qt::BlockingQueuedConnection,
 			Q_ARG(QString, tr("Downloading")));
-	dh.loop.exec();
-	bool success = (reply->error() == QNetworkReply::NoError);
-	if (!success)
+	exec();
+	if (dh.failed)
 		QFile::remove(dest + ".tmp");
 
-	delete reply;
 	outFile.flush();
 	outFile.close();
 	QFile::remove(dest);
 	outFile.rename(dest);
-	return success;
+	return !dh.failed;
 }
 
 bool Launcher::downloadLauncherIndexItem(LauncherIndexItem *item, QVector<QString> *tempFiles) {
@@ -182,10 +188,11 @@ void Launcher::checkFiles(LauncherIndexHash *brokenFiles) {
 void Launcher::selectRepo(const QString &newIndexPath) {
 	bool sigFail = false;
 	QStringList repos = Rexuiz::repos();
+	resetProgress(repos.length());
 	foreach (QString repo, repos) {
-		if (download(repo + "/index.lst", newIndexPath)) {
+		if (download(repo + "/index.lst", newIndexPath, 0, 2000)) {
 			QString sigPath = this->buildPath("index.lst.new.sig");
-			if (this->download(repo + "/index.lst.sig", sigPath)) {
+			if (this->download(repo + "/index.lst.sig", sigPath, 0, 2000)) {
 				if (Sign::verify(newIndexPath, sigPath)) {
 					this->selectedRepo = repo;
 					qDebug("index file verification success");
@@ -198,6 +205,7 @@ void Launcher::selectRepo(const QString &newIndexPath) {
 				qDebug("no digital signature for index");
 			}
 		}
+		setProgress(1);
 	}
 	if (sigFail)
 		QMetaObject::invokeMethod(this->mainWindow, "errorMessage",
