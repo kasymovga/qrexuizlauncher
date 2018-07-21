@@ -54,3 +54,4 @@ TRANSLATIONS = RexuizLauncher_ru.ts
 LIBS += -lmbedcrypto
 
 win32:RC_ICONS += icon.ico
+ICON = icon.icns
