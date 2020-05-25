@@ -1,5 +1,4 @@
-http://rexuiz.top/maps/RexuizLauncher
-http://bnse.rexuiz.top/RexuizLauncher
+http://rexuiz.com/maps/RexuizLauncher
+http://bnse.rexuiz.com/RexuizLauncher
 http://nexuiz.mooo.com/RexuizLauncher
 http://108.61.164.188/RexuizLauncher
-http://104.238.159.167/RexuizLauncher
