@@ -196,6 +196,9 @@ void Launcher::selectRepo(const QString &newIndexPath) {
 			if (line[line.length() - 1] == '\n')
 				line = line.left(line.length() - 1);
 
+			if (line[line.length() - 1] == '\r')
+				line = line.left(line.length() - 1);
+
 			repos.removeOne(line);
 			repos.prepend(line);
 		}
