@@ -188,6 +188,16 @@ void Launcher::checkFiles(LauncherIndexHash *brokenFiles) {
 void Launcher::selectRepo(const QString &newIndexPath) {
 	bool sigFail = false;
 	QStringList repos = Rexuiz::repos();
+	QFile launcherReposFile(this->buildPath("launcherrepos.txt"));
+	QByteArray line;
+	if (launcherReposFile.open(QFile::ReadOnly))
+		while (!launcherReposFile.atEnd()) {
+			line = launcherReposFile.readLine();
+			if (line[line.length() - 1] == '\n')
+				line = line.left(line.length() - 1);
+
+			repos.prepend(line);
+		}
 	resetProgress(repos.length());
 	foreach (QString repo, repos) {
 		if (download(repo + "/index.lst", newIndexPath, 0, 2000)) {
