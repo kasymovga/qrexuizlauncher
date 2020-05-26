@@ -62,7 +62,7 @@ bool Sign::verify(const QString &path, const QString &signPath)
 	int error_code;
 	if ((error_code = mbedtls_pk_parse_public_key(&pk, (const unsigned char *)keyData.data(), keyData.length())) != 0) {
 		qDebug("mbedtls_pk_parse_public_key failed");
-		qDebug(keyData.data());
+		qDebug("%s", keyData.data());
 		goto finish;
 	}
 	if (!signFile.open(QFile::ReadOnly)) {

@@ -29,7 +29,7 @@ void Launcher::setMainWindow(MainWindow *w) {
 
 bool Launcher::download(const QString &url, const QString &dest, qint64 expectedSize, int timeout) {
 	this->resetSubProgress(expectedSize);
-	qDebug((QString("Downloading ") + url + " to " + dest).toLocal8Bit());
+	qDebug("%s", (QString("Downloading ") + url + " to " + dest).toLocal8Bit().constData());
 	if (!QFileInfo(dest).dir().mkpath(".")) {
 		QMetaObject::invokeMethod(this->mainWindow, "errorMessage",
 				Qt::BlockingQueuedConnection,
@@ -179,7 +179,7 @@ void Launcher::checkFiles(LauncherIndexHash *brokenFiles) {
 	for (auto i = this->index->begin(); i != this->index->end(); i++) {
 		LauncherIndexItem *item = i.value();
 		if (QFile(this->buildPath(item->path)).size() != item->size) {
-			qDebug((QString("File ") + item->path + " broken!").toLocal8Bit());
+			qDebug("%s", (QString("File ") + item->path + " broken!").toLocal8Bit().constData());
 			brokenFiles->insert(item->path, item);
 		}
 	}
