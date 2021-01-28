@@ -102,6 +102,10 @@ Line: </source>
         <source>Digital signature check failed. Maybe you need update RexuizLauncher.</source>
         <translation>Проверка цифровой подписи завершилась неуспешно. Возможно необходимо обновить RexuizLauncher.</translation>
     </message>
+    <message>
+        <source>Update installed. Run game?</source>
+        <translation>Обновление установлено. Запустить игру?</translation>
+    </message>
 </context>
 <context>
     <name>MainWindow</name>

@@ -232,6 +232,7 @@ bool Launcher::update(const QString &newIndexPath, LauncherIndexHash *brokenFile
 	auto newIndex = Launcher::loadIndex(newIndexPath);
 	bool reply = false;
 	bool success = false;
+	this->updateHappened = false;
 	if (newIndex && newIndex->begin() != newIndex->end()) {
 		//We have new index, try update
 		LauncherIndexHash newFiles; //new files, that we want update
@@ -287,6 +288,7 @@ bool Launcher::update(const QString &newIndexPath, LauncherIndexHash *brokenFile
 				for (auto i = oldFiles.begin(); i != oldFiles.end(); i++) {
 					//QFile::remove(this->buildPath(i.value()->path));
 				}
+				this->updateHappened = true;
 			} else {
 				success = true;
 				goto finish;
@@ -363,8 +365,18 @@ void Launcher::run() {
 		if (!this->update(newIndexPath, &brokenFiles))
 			updateFailed = true;
 	}
-	if (!updateFailed)
-		this->launch();
+	if (!updateFailed) {
+		if (this->updateHappened) {
+			bool reply = false;
+			QMetaObject::invokeMethod(this->mainWindow, "askYesNo", Qt::BlockingQueuedConnection,
+					Q_RETURN_ARG(bool, reply),
+					Q_ARG(QString, tr("Confirmation")),
+					Q_ARG(QString, tr("Update installed. Run game?")));
+			if (reply)
+				this->launch();
+		} else
+			this->launch();
+	}
 finish:
 	QFile::remove(newIndexPath);
 	QFile::remove(newIndexPath + ".sig");
