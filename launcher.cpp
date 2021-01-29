@@ -424,7 +424,7 @@ LauncherIndexHash *Launcher::loadIndex(const QString &path) {
 		return nullptr;
 
 	auto index = new LauncherIndexHash;
-
+	bool otherOS;
 	char line[2048];
 	qint64 readed;
 	while (!file.atEnd()) {
@@ -460,7 +460,23 @@ LauncherIndexHash *Launcher::loadIndex(const QString &path) {
 				delete check.value();
 				index->erase(check);
 			}
-			index->insert(item->path, item);
+			otherOS = false;
+#ifndef Q_OS_LINUX
+			if (item->path.contains(QString("linux")))
+				otherOS = true;
+#endif
+#ifndef Q_OS_WIN32
+			if (item->path.contains(QString(".exe")) || item->path.contains(QString(".dll")) || item->path.contains(QString(".cmd")))
+				otherOS = true;
+#endif
+#ifndef Q_OS_MACOS
+			if (item->path.contains(QString(".app")))
+				otherOS = true;
+#endif
+			if (otherOS)
+				delete item;
+			else
+				index->insert(item->path, item);
 		}
 	}
 	return index;
