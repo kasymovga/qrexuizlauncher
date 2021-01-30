@@ -15,6 +15,7 @@
 #include <QTimer>
 #include <QStandardPaths>
 #include <QDesktopServices>
+#include <QTextStream>
 #include "sign.h"
 #include "mainwindow.h"
 #include "rexuiz.h"
