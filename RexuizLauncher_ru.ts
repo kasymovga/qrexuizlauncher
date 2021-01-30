@@ -106,6 +106,10 @@ Line: </source>
         <source>Update installed. Run game?</source>
         <translation>Обновление установлено. Запустить игру?</translation>
     </message>
+    <message>
+        <source>New version of RexuizLauncher available. Open download page?</source>
+        <translation>Доступна новая версия RexuizLauncher. Открыть страницу загрузки?</translation>
+    </message>
 </context>
 <context>
     <name>MainWindow</name>

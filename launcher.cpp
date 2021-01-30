@@ -14,6 +14,7 @@
 #include <QLocale>
 #include <QTimer>
 #include <QStandardPaths>
+#include <QDesktopServices>
 #include "sign.h"
 #include "mainwindow.h"
 #include "rexuiz.h"
@@ -302,6 +303,16 @@ finish:
 	return success;
 }
 
+bool Launcher::checkNewVersion() {
+	QFile f(this->buildPath("launcherupdate.txt"));
+	if (!f.open(QFile::ReadOnly | QFile::Text)) return false;
+	QTextStream ts(&f);
+	QString version = ts.readLine();
+	this->launcherUpdateLink = ts.readLine();
+	f.close();
+	return (version.toLongLong() > LAUNCHERVERSION);
+}
+
 void Launcher::run() {
 #ifdef Q_OS_LINUX
 	this->installPath = QProcessEnvironment::systemEnvironment().value("APPIMAGE", "");
@@ -364,6 +375,18 @@ void Launcher::run() {
 	} else {
 		if (!this->update(newIndexPath, &brokenFiles))
 			updateFailed = true;
+	}
+	if (!updateFailed && !this->updateHappened && this->checkNewVersion()) {
+		bool reply = false;
+		QMetaObject::invokeMethod(this->mainWindow, "askYesNo", Qt::BlockingQueuedConnection,
+				Q_RETURN_ARG(bool, reply),
+				Q_ARG(QString, tr("Confirmation")),
+				Q_ARG(QString, tr("New version of RexuizLauncher available. Open download page?")));
+		if (reply) {
+			QDesktopServices::openUrl(QUrl(this->launcherUpdateLink));
+			QMetaObject::invokeMethod(this->mainWindow, "close", Qt::BlockingQueuedConnection);
+			return;
+		}
 	}
 	if (!updateFailed) {
 		if (this->updateHappened) {

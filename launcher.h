@@ -10,6 +10,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QEventLoop>
+#define LAUNCHERVERSION 20210121
 
 class MainWindow;
 
@@ -30,6 +31,7 @@ class Launcher : public QThread
 {
 	Q_OBJECT
 	QString installPath;
+	QString launcherUpdateLink;
 	MainWindow *mainWindow = nullptr;
 	QVector<QString *> repos;
 	QString selectedRepo;
@@ -37,6 +39,7 @@ class Launcher : public QThread
 	static LauncherIndexItem *parseIndexLine(const char *line);
 	bool download(const QString &url, const QString &dest, qint64 expectedSize = 0, int timeout = 0);
 	bool downloadLauncherIndexItem(LauncherIndexItem *item, QVector<QString> *tempFiles);
+	bool checkNewVersion();
 	LauncherIndexHash *loadIndex(const QString &path);
 	static void deleteIndex(LauncherIndexHash *index);
 	void saveIndex(LauncherIndexHash *index);
