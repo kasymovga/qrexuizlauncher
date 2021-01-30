@@ -147,7 +147,11 @@ void Launcher::launch() {
 	QProcess process;
 	process.setWorkingDirectory(this->installPath);
 	process.setProcessChannelMode(QProcess::ForwardedChannels);
-	process.start(binaryPath, QStringList());
+	QStringList args = QCoreApplication::arguments();
+	args.append("+set");
+	args.append("rexuizlauncher");
+	args.append(QString::number(LAUNCHERVERSION));
+	process.start(binaryPath, args);
 	process.waitForFinished(-1);
 }
 
