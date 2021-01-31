@@ -332,6 +332,7 @@ void Launcher::run() {
 		d.cdUp();
 		if (d.dirName() == "Contents") {
 			d.cdUp();
+			d.cdUp();
 			this->installPath = d.absolutePath();
 		}
 	}
