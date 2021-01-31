@@ -326,6 +326,16 @@ void Launcher::run() {
 	} else
 #endif
 	this->installPath = QDir(QCoreApplication::applicationDirPath()).absolutePath();
+#ifdef Q_OS_MACOS
+	QDir d(this->installPath);
+	if (d.dirName() == "MacOS") {
+		d.cdUp();
+		if (d.dirName() == "Contents") {
+			d.cdUp();
+			this->installPath = d.absolutePath();
+		}
+	}
+#endif
 #ifdef Q_OS_LINUX
 	if (!QFileInfo(installPath).isWritable())
 		this->installPath = QStandardPaths::locate(QStandardPaths::HomeLocation, QString(), QStandardPaths::LocateDirectory);;
