@@ -1,4 +1,5 @@
-http://rexuiz.com/maps/RexuizLauncher
-http://bnse.rexuiz.com/RexuizLauncher
-http://nexuiz.mooo.com/RexuizLauncher
-http://108.61.164.188/RexuizLauncher
+http://rexuiz.com/maps/RexuizLauncher2
+https://kasymovga.github.io/rexdlc-web/rl
+http://bnse.rexuiz.com/RexuizLauncher2
+http://nexuiz.mooo.com/RexuizLauncher2
+http://108.61.164.188/RexuizLauncher2
