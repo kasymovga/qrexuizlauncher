@@ -11,6 +11,7 @@
 #include <QNetworkReply>
 #include <QEventLoop>
 #include <QSettings>
+#include <QDateTime>
 #define LAUNCHERVERSION 20220507
 
 class MainWindow;
