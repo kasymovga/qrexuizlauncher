@@ -1,7 +1,6 @@
 #include "launcher.h"
 #include <QMessageBox>
 #include <QMetaObject>
-#include <QSettings>
 #include <QDir>
 #include <QUrl>
 #include <QNetworkRequest>
@@ -23,6 +22,7 @@
 
 Launcher::Launcher()
 {
+	settings = new QSettings("RexuizDev", "RexuizLauncher");
 }
 
 void Launcher::setMainWindow(MainWindow *w) {
@@ -152,8 +152,17 @@ void Launcher::launch() {
 	args.append("+set");
 	args.append("rexuizlauncher");
 	args.append(QString::number(LAUNCHERVERSION));
+	QDateTime startTime(QDateTime::currentDateTime());
 	process.start(binaryPath, args);
 	process.waitForFinished(-1);
+	QDateTime finishTime(QDateTime::currentDateTime());
+	settings->beginGroup("main");
+	if (startTime.secsTo(finishTime) < 30)
+		settings->setValue("last_run_time", finishTime.addDays(-7));
+	else
+		settings->setValue("last_run_time", finishTime);
+
+	settings->endGroup();
 }
 
 QString Launcher::buildPath(const QString &path) {
@@ -283,8 +292,6 @@ bool Launcher::update(const QString &newIndexPath, LauncherIndexHash *brokenFile
 								Qt::BlockingQueuedConnection,
 								Q_ARG(QString ,tr("Error")),
 								Q_ARG(QString, QString(tr("File download failed: ") + i.value()->path)));
-
-						QMetaObject::invokeMethod(this->mainWindow, "close", Qt::BlockingQueuedConnection);
 						goto finish;
 					}
 				}
@@ -348,60 +355,73 @@ void Launcher::run() {
 		this->installPath = QDir(this->installPath).filePath("Rexuiz");
 	}
 	bool isUpdate = false;
+	bool updateRequired = false;
 	QMetaObject::invokeMethod(mainWindow, "setStatus", Q_ARG(QString, tr("Preparing")));
 	QMetaObject::invokeMethod(mainWindow, "setSubStatus", Q_ARG(QString, ""));
-	QSettings settings("RexuizDev", "RexuizLauncher");
-	settings.beginGroup("main");
+	settings->beginGroup("main");
 	if (!updaterMode)
-		this->installPath = settings.value("install_path", this->installPath).toString();
+		this->installPath = settings->value("install_path", this->installPath).toString();
 
-	settings.endGroup();
+	QDateTime lastCheckTime(settings->value("last_run_time", QDateTime::currentDateTime().addDays(-7)).toDateTime());
+	settings->endGroup();
+	if (lastCheckTime.secsTo(QDateTime::currentDateTime()) > 3600 * 6) {
+		updateRequired = true;
+		qDebug("%s", QString("Last run happened more than 6 hours ago, update check required.").toLocal8Bit().constData());
+	}
 	if (this->installPath.isEmpty() || (!QFile::exists(QDir(installPath).filePath("index.lst")) && !updaterMode)) {
 		QMetaObject::invokeMethod(mainWindow, "askDirectory",
 				Qt::BlockingQueuedConnection,
 				Q_RETURN_ARG(QString, this->installPath),
 				Q_ARG(QString, tr("Select install folder")),
 				Q_ARG(QString, this->installPath));
+		updateRequired = true;
 	}
 	if (this->installPath.isEmpty()) {
 		QMetaObject::invokeMethod(this->mainWindow, "close", Qt::BlockingQueuedConnection);
 		return;
 	} else {
-		settings.beginGroup("main");
+		settings->beginGroup("main");
 		if (!updaterMode)
-			settings.setValue("install_path", this->installPath);
+			settings->setValue("install_path", this->installPath);
 
-		settings.endGroup();
+		settings->endGroup();
 	}
 	this->index = this->loadIndex(this->buildPath("index.lst"));
 	if (index != nullptr) {
 		isUpdate = true;
-	}
+	} else
+		updateRequired = true;
+
 	LauncherIndexHash brokenFiles;
 	this->checkFiles(&brokenFiles);
-	QString newIndexPath = QDir(installPath).filePath("index.lst.new");
-	QMetaObject::invokeMethod(mainWindow, "setStatus", Qt::BlockingQueuedConnection, Q_ARG(QString, tr("Get update information")));
-	this->selectRepo(newIndexPath);
+	if (brokenFiles.count() > 0)
+		updateRequired = true;
+
 	bool updateFailed = false;
-	if (selectedRepo.isEmpty()) {
-		if (!isUpdate) {
-			QMetaObject::invokeMethod(this->mainWindow, "errorMessage", Qt::BlockingQueuedConnection, Q_ARG(QString ,"Error"), Q_ARG(QString, tr("Repositories unavailable")));
-			goto finish;
+	QString newIndexPath = QDir(installPath).filePath("index.lst.new");
+	this->updateHappened = false;
+	if (updateRequired) {
+		QMetaObject::invokeMethod(mainWindow, "setStatus", Qt::BlockingQueuedConnection, Q_ARG(QString, tr("Get update information")));
+		this->selectRepo(newIndexPath);
+		if (selectedRepo.isEmpty()) {
+			if (!isUpdate) {
+				QMetaObject::invokeMethod(this->mainWindow, "errorMessage", Qt::BlockingQueuedConnection, Q_ARG(QString ,"Error"), Q_ARG(QString, tr("Repositories unavailable")));
+				goto finish;
+			}
+		} else {
+			if (!this->update(newIndexPath, &brokenFiles))
+				updateFailed = true;
 		}
-	} else {
-		if (!this->update(newIndexPath, &brokenFiles))
-			updateFailed = true;
-	}
-	if (!updateFailed && !this->updateHappened && this->checkNewVersion()) {
-		bool reply = false;
-		QMetaObject::invokeMethod(this->mainWindow, "askYesNo", Qt::BlockingQueuedConnection,
-				Q_RETURN_ARG(bool, reply),
-				Q_ARG(QString, tr("Confirmation")),
-				Q_ARG(QString, tr("New version of RexuizLauncher available. Open download page?")));
-		if (reply) {
-			QDesktopServices::openUrl(QUrl(this->launcherUpdateLink));
-			QMetaObject::invokeMethod(this->mainWindow, "close", Qt::BlockingQueuedConnection);
-			return;
+		if (!updateFailed && !this->updateHappened && this->checkNewVersion()) {
+			bool reply = false;
+			QMetaObject::invokeMethod(this->mainWindow, "askYesNo", Qt::BlockingQueuedConnection,
+					Q_RETURN_ARG(bool, reply),
+					Q_ARG(QString, tr("Confirmation")),
+					Q_ARG(QString, tr("New version of RexuizLauncher available. Open download page?")));
+			if (reply) {
+				QDesktopServices::openUrl(QUrl(this->launcherUpdateLink));
+				goto finish;
+			}
 		}
 	}
 	if (!updateFailed) {
@@ -528,6 +548,7 @@ Launcher::~Launcher() {
 	foreach(QString *repo, repos) {
 		delete repo;
 	}
+	delete settings;
 }
 
 void Launcher::setSubProgress(qint64 writed) {

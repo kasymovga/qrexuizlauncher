@@ -10,6 +10,7 @@
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QEventLoop>
+#include <QSettings>
 #define LAUNCHERVERSION 20210121
 
 class MainWindow;
@@ -35,6 +36,7 @@ class Launcher : public QThread
 	MainWindow *mainWindow = nullptr;
 	QVector<QString *> repos;
 	QString selectedRepo;
+	QSettings *settings = nullptr;
 	LauncherIndexHash *index = nullptr;
 	static LauncherIndexItem *parseIndexLine(const char *line);
 	bool download(const QString &url, const QString &dest, qint64 expectedSize = 0, int timeout = 0);
