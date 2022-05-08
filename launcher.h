@@ -12,7 +12,7 @@
 #include <QEventLoop>
 #include <QSettings>
 #include <QDateTime>
-#define LAUNCHERVERSION 20220507
+#define LAUNCHERVERSION 20220508
 
 class MainWindow;
 
