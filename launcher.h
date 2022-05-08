@@ -56,7 +56,8 @@ class Launcher : public QThread
 	void checkFiles(LauncherIndexHash *brokenFiles);
 	void selectRepo(const QString &newIndexPath);
 	bool update(const QString &newIndexPath, LauncherIndexHash *brokenFiles);
-	bool updateHappened;
+	bool updateHappened = false;
+	bool updateDeclined = false;
 public:
     Launcher();
 	~Launcher();

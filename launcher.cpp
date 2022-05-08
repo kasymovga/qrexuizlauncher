@@ -158,9 +158,7 @@ void Launcher::launch() {
 	QDateTime finishTime(QDateTime::currentDateTime());
 	settings->beginGroup("main");
 	if (startTime.secsTo(finishTime) < 30)
-		settings->setValue("last_run_time", finishTime.addDays(-7));
-	else
-		settings->setValue("last_run_time", finishTime);
+		settings->setValue("last_update_time", finishTime.addDays(-7));
 
 	settings->endGroup();
 }
@@ -248,6 +246,7 @@ bool Launcher::update(const QString &newIndexPath, LauncherIndexHash *brokenFile
 	bool reply = false;
 	bool success = false;
 	this->updateHappened = false;
+	this->updateDeclined = false;
 	if (newIndex && newIndex->begin() != newIndex->end()) {
 		//We have new index, try update
 		LauncherIndexHash newFiles; //new files, that we want update
@@ -303,6 +302,7 @@ bool Launcher::update(const QString &newIndexPath, LauncherIndexHash *brokenFile
 				}
 				this->updateHappened = true;
 			} else {
+				this->updateDeclined = true;
 				success = true;
 				goto finish;
 			}
@@ -362,11 +362,11 @@ void Launcher::run() {
 	if (!updaterMode)
 		this->installPath = settings->value("install_path", this->installPath).toString();
 
-	QDateTime lastCheckTime(settings->value("last_run_time", QDateTime::currentDateTime().addDays(-7)).toDateTime());
+	QDateTime lastCheckTime(settings->value("last_update_time", QDateTime::currentDateTime().addDays(-7)).toDateTime());
 	settings->endGroup();
 	if (lastCheckTime.secsTo(QDateTime::currentDateTime()) > 3600 * 6) {
 		updateRequired = true;
-		qDebug("%s", QString("Last run happened more than 6 hours ago, update check required.").toLocal8Bit().constData());
+		qDebug("%s", QString("Last update check happened more than 6 hours ago, update check required.").toLocal8Bit().constData());
 	}
 	if (this->installPath.isEmpty() || (!QFile::exists(QDir(installPath).filePath("index.lst")) && !updaterMode)) {
 		QMetaObject::invokeMethod(mainWindow, "askDirectory",
@@ -398,6 +398,7 @@ void Launcher::run() {
 		updateRequired = true;
 
 	bool updateFailed = false;
+	bool updateCheckHappened = false;
 	QString newIndexPath = QDir(installPath).filePath("index.lst.new");
 	this->updateHappened = false;
 	if (updateRequired) {
@@ -409,6 +410,7 @@ void Launcher::run() {
 				goto finish;
 			}
 		} else {
+			updateCheckHappened = true;
 			if (!this->update(newIndexPath, &brokenFiles))
 				updateFailed = true;
 		}
@@ -425,6 +427,13 @@ void Launcher::run() {
 		}
 	}
 	if (!updateFailed) {
+		if (updateCheckHappened && !this->updateDeclined)
+		{
+			settings->beginGroup("main");
+			settings->setValue("last_update_time", QDateTime::currentDateTime());
+			settings->endGroup();
+			qDebug("%s", QString("Mark update check success.").toLocal8Bit().constData());
+		}
 		if (this->updateHappened) {
 			bool reply = false;
 			QMetaObject::invokeMethod(this->mainWindow, "askYesNo", Qt::BlockingQueuedConnection,
@@ -433,6 +442,7 @@ void Launcher::run() {
 					Q_ARG(QString, tr("Update installed. Run game?")));
 			if (reply)
 				this->launch();
+
 		} else
 			this->launch();
 	}
